@@ -4,8 +4,10 @@
 | | |
 | --- | --- |
 | **Producto** | Simulador Go-Back-N — protocolo de ventana deslizante con retroceso N |
-| **Versión del documento** | 1.0 |
+| **Autores** | Juan David Ortiz Cano — 1152298<br>Maria Fernanda Corzo Castro — 1152300<br>Sarith Valentina Parada Ramón — 1152253 |
+| **Versión del documento** | 1.1 |
 | **Fecha** | 15 de septiembre de 2026 |
+| **Aplicación en línea** | https://juan1806y.github.io/Proyecto_GBN/ |
 | **Repositorio** | https://github.com/Juan1806y/Proyecto_GBN |
 | **Documento relacionado** | `README.md` (guía técnica y de instalación) |
 
@@ -77,7 +79,24 @@ modelo de capas y la idea de trama; no se requiere saber programar para usar el 
 
 # 2. Requisitos, instalación y ejecución
 
-## 2.1 Requisitos del sistema
+## 2.1 Acceso en línea (recomendado)
+
+La aplicación está publicada en **GitHub Pages** y funciona directamente en el navegador, sin
+instalar nada ni descargar el código:
+
+> ### 🌐 https://juan1806y.github.io/Proyecto_GBN/
+
+Cada cambio confirmado en la rama `main` del repositorio se compila y se publica de forma
+automática, de modo que esa dirección sirve siempre la última versión. Para usarla basta con
+un navegador actual y conexión a internet; no se instala nada en el equipo ni se envía
+información a ningún servidor: toda la simulación se ejecuta en el propio navegador.
+
+El resto de este capítulo solo es necesario para ejecutar el simulador **en local** o para
+modificar su código.
+
+## 2.2 Requisitos del sistema
+
+Para la ejecución local:
 
 | Elemento | Mínimo |
 | --- | --- |
@@ -87,7 +106,7 @@ modelo de capas y la idea de trama; no se requiere saber programar para usar el 
 | Resolución de pantalla | 1280 × 800 (recomendado 1600 × 1000 o superior) |
 | Espacio en disco | ≈ 300 MB con las dependencias instaladas |
 
-## 2.2 Instalación
+## 2.3 Instalación
 
 ```bash
 git clone https://github.com/Juan1806y/Proyecto_GBN.git
@@ -95,7 +114,7 @@ cd Proyecto_GBN
 npm install
 ```
 
-## 2.3 Ejecución
+## 2.4 Ejecución
 
 ```bash
 npm run dev
@@ -106,7 +125,7 @@ navegador. La aplicación se recarga sola al guardar cambios en el código.
 
 Para detener el servidor, pulsa `Ctrl + C` en la terminal.
 
-## 2.4 Comprobación de la instalación
+## 2.5 Comprobación de la instalación
 
 El proyecto incluye un banco de pruebas del protocolo que se ejecuta sin navegador:
 
@@ -117,7 +136,7 @@ npm run verify
 Debe terminar con `TODAS LAS PRUEBAS PASAN` (50 comprobaciones). Si alguna falla, el
 simulador no está reproduciendo correctamente el protocolo y no conviene usarlo para clase.
 
-## 2.5 Versión de producción
+## 2.6 Versión de producción
 
 ```bash
 npm run build

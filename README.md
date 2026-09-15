@@ -6,6 +6,10 @@ pensado para docencia de redes de computadoras: muestra en todo momento el estad
 
 React 19 · TypeScript · Vite · Tailwind CSS 4 · Framer Motion
 
+> ### 🌐 Aplicación en línea: https://juan1806y.github.io/Proyecto_GBN/
+>
+> Publicada automáticamente en GitHub Pages con cada cambio en `main`.
+
 > 📘 **Manual de usuario** — guía completa con capturas, descripción de todos los parámetros,
 > procedimientos paso a paso y prácticas guiadas:
 > [leer en línea](docs/MANUAL-DE-USUARIO.md) ·
@@ -239,3 +243,9 @@ tramas) implementan:
 `Espacio` enviar · `S` o `→` avanzar al próximo evento · `X` perder paquete ·
 `A` perder ACK · `D` retrasar trama ·
 `P` pausar/reanudar · `R` reiniciar
+
+## Autores
+
+- Juan David Ortiz Cano — 1152298
+- Maria Fernanda Corzo Castro — 1152300
+- Sarith Valentina Parada Ramón — 1152253
