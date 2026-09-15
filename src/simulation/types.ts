@@ -3,8 +3,8 @@
  *
  * El vocabulario sigue a Tanenbaum & Wetherall, "Redes de Computadoras"
  * (5.a ed., §3.4 "Protocolos de ventana deslizante"): el emisor mantiene una
- * ventana de envío de tamaño N, el receptor una ventana de recepción de
- * tamaño 1, y los ACK son acumulativos.
+ * ventana de envío de apertura N, el receptor una ventana de recepción de
+ * apertura 1, y los ACK son acumulativos.
  */
 
 /** Una trama viaja por el canal o bien como dato o bien como confirmación. */
@@ -76,7 +76,7 @@ export interface TimeoutMark {
 }
 
 export interface SimConfig {
-  /** Tamaño N de la ventana del emisor. */
+  /** Apertura N de la ventana del emisor. */
   windowSize: number
   /** Retardo de propagación de ida, en ms de simulación. */
   propagationDelay: number

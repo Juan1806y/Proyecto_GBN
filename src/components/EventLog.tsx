@@ -6,11 +6,11 @@ import { Panel } from './ui'
 import { cx } from '../lib/cx'
 
 const SOURCE_STYLE: Record<LogSource, { label: string; dot: string; text: string }> = {
-  sender: { label: 'EMISOR', dot: 'bg-indigo-400', text: 'text-indigo-300' },
-  receiver: { label: 'RECEPTOR', dot: 'bg-emerald-400', text: 'text-emerald-300' },
-  channel: { label: 'CANAL', dot: 'bg-rose-400', text: 'text-rose-300' },
-  timer: { label: 'TIMER', dot: 'bg-amber-400', text: 'text-amber-300' },
-  system: { label: 'SISTEMA', dot: 'bg-slate-400', text: 'text-slate-400' },
+  sender: { label: 'EMISOR', dot: 'bg-indigo-500', text: 'text-indigo-600' },
+  receiver: { label: 'RECEPTOR', dot: 'bg-emerald-500', text: 'text-emerald-600' },
+  channel: { label: 'CANAL', dot: 'bg-rose-500', text: 'text-rose-600' },
+  timer: { label: 'TIMER', dot: 'bg-amber-500', text: 'text-amber-600' },
+  system: { label: 'SISTEMA', dot: 'bg-slate-400', text: 'text-slate-600' },
 }
 
 export function EventLog({ state }: { state: SimState }) {
@@ -20,7 +20,7 @@ export function EventLog({ state }: { state: SimState }) {
       subtitle="Cada transición de la máquina de estados"
       bodyClassName="p-0"
     >
-      <ul className="max-h-[300px] divide-y divide-white/[0.06] overflow-y-auto">
+      <ul className="max-h-[300px] divide-y divide-slate-100 overflow-y-auto">
         <AnimatePresence initial={false}>
           {state.log.map((entry) => {
             const style = SOURCE_STYLE[entry.source]
@@ -39,16 +39,16 @@ export function EventLog({ state }: { state: SimState }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-mono text-[10px] text-slate-500">
+                    <span className="font-mono text-[11px] text-slate-600">
                       {(entry.time / 1000).toFixed(2)}s
                     </span>
-                    <span className={cx('text-[10px] font-semibold tracking-wider', style.text)}>
+                    <span className={cx('text-[11px] font-semibold tracking-wider', style.text)}>
                       {style.label}
                     </span>
                   </div>
-                  <p className="text-[13px] leading-snug text-slate-200">{entry.title}</p>
+                  <p className="text-[14px] leading-snug text-slate-700">{entry.title}</p>
                   {entry.detail && (
-                    <p className="mt-0.5 text-[11px] leading-snug text-slate-500">{entry.detail}</p>
+                    <p className="mt-0.5 text-[12px] leading-snug text-slate-600">{entry.detail}</p>
                   )}
                 </div>
               </motion.li>

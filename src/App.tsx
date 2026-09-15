@@ -19,9 +19,9 @@ import { formatPercent } from './simulation/formulas'
 
 function HeaderStat({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
-    <div className="min-w-[86px] rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5">
-      <div className="text-[9.5px] tracking-[0.12em] text-slate-400 uppercase">{label}</div>
-      <div className={cx('font-mono text-sm font-semibold', tone)}>{value}</div>
+    <div className="min-w-[86px] rounded-xl border border-slate-300 bg-slate-50 px-3 py-1.5 shadow-sm shadow-slate-300/20">
+      <div className="text-[10.5px] font-semibold tracking-[0.12em] text-slate-600 uppercase">{label}</div>
+      <div className={cx('font-mono text-base font-bold', tone)}>{value}</div>
     </div>
   )
 }
@@ -34,13 +34,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-12">
-      <header className="border-b border-white/10 bg-slate-950/40 backdrop-blur-sm">
+      <header className="border-b border-slate-300 bg-white shadow-sm shadow-slate-300/20">
         <div className="mx-auto flex max-w-[1680px] flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-50">
-              Simulador <span className="text-indigo-400">Go-Back-N</span>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Simulador <span className="text-indigo-600">Go-Back-N</span>
             </h1>
-            <p className="mt-0.5 text-[12.5px] text-slate-400">
+            <p className="mt-0.5 text-[13.5px] text-slate-600">
               Protocolo de ventana deslizante con retroceso N · retransmisión por temporizador y ACK
               acumulativos
             </p>
@@ -49,27 +49,27 @@ export default function App() {
             <HeaderStat
               label="Reloj"
               value={`${(state.time / 1000).toFixed(1)} s`}
-              tone="text-slate-200"
+              tone="text-slate-700"
             />
             <HeaderStat
               label="Entregadas"
               value={`${state.receiver.delivered.length}/${state.config.totalPackets}`}
-              tone="text-emerald-300"
+              tone="text-emerald-600"
             />
             <HeaderStat
               label="Eficiencia"
               value={derived.totalTransmissions === 0 ? '—' : formatPercent(derived.efficiency, 0)}
-              tone="text-sky-300"
+              tone="text-sky-600"
             />
             <HeaderStat
               label="Timeouts"
               value={String(state.stats.timeouts)}
-              tone={state.stats.timeouts > 0 ? 'text-amber-300' : 'text-slate-400'}
+              tone={state.stats.timeouts > 0 ? 'text-amber-600' : 'text-slate-500'}
             />
             <HeaderStat
               label="Pérdidas"
               value={String(losses)}
-              tone={losses > 0 ? 'text-rose-300' : 'text-slate-400'}
+              tone={losses > 0 ? 'text-rose-600' : 'text-slate-500'}
             />
             {!state.running && <Tag tone="amber">⏸ en pausa</Tag>}
             {derived.complete && <Tag tone="emerald">✓ transferencia completa</Tag>}

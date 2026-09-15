@@ -7,10 +7,12 @@
 import { useState } from 'react'
 import {
   TANENBAUM_EXAMPLE,
+  bitErrorRate,
   bitsForWindow,
   formatBits,
   formatMs,
   formatPercent,
+  formatScientific,
   goBackNUtilization,
   linkMetrics,
   maxWindowForBits,
@@ -21,17 +23,18 @@ import type { LinkParams } from '../simulation/formulas'
 import { Panel, Slider } from './ui'
 import { cx } from '../lib/cx'
 
-type Tab = 'protocolo' | 'formulas' | 'calculadora'
+type Tab = 'protocolo' | 'parametros' | 'formulas' | 'calculadora'
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'protocolo', label: 'Máquina de estados' },
+  { id: 'parametros', label: 'Parámetros' },
   { id: 'formulas', label: 'Fórmulas' },
   { id: 'calculadora', label: 'Calculadora' },
 ]
 
 function Code({ children }: { children: React.ReactNode }) {
   return (
-    <pre className="overflow-x-auto rounded-xl border border-white/10 bg-slate-950/60 p-3 font-mono text-[11.5px] leading-relaxed text-slate-300">
+    <pre className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-[12.5px] leading-relaxed text-slate-600">
       {children}
     </pre>
   )
@@ -49,28 +52,257 @@ function Formula({
   source: string
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-      <h4 className="text-[12px] font-semibold text-slate-200">{title}</h4>
-      <p className="my-2 rounded-lg bg-slate-950/60 px-3 py-2 text-center font-mono text-[13px] text-indigo-200">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <h4 className="text-[13px] font-semibold text-slate-700">{title}</h4>
+      <p className="my-2 rounded-lg bg-indigo-50 px-3 py-2 text-center font-mono text-[14px] text-indigo-700">
         {expression}
       </p>
-      <p className="text-[11.5px] leading-snug text-slate-400">{description}</p>
-      <p className="mt-1.5 text-[10.5px] text-slate-600 italic">{source}</p>
+      <p className="text-[12.5px] leading-snug text-slate-600">{description}</p>
+      <p className="mt-1.5 text-[11.5px] text-slate-500 italic">{source}</p>
     </div>
   )
 }
 
 function Row({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.06] py-1.5 last:border-0">
-      <span className="text-[12px] text-slate-400">
+    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-0">
+      <span className="text-[13px] text-slate-600">
         {label}
-        {hint && <span className="ml-1 text-[10px] text-slate-600">{hint}</span>}
+        {hint && <span className="ml-1 text-[11px] text-slate-500">{hint}</span>}
       </span>
-      <span className="font-mono text-[12.5px] font-semibold text-slate-100">{value}</span>
+      <span className="font-mono text-[13.5px] font-semibold text-slate-800">{value}</span>
     </div>
   )
 }
+
+interface ParamDoc {
+  symbol: string
+  name: string
+  where: string
+  unit: string
+  meaning: string
+  relation?: string
+}
+
+/** Tabla de definiciones reutilizada por los glosarios de parámetros. */
+function ParamTable({ title, note, rows }: { title: string; note?: string; rows: ParamDoc[] }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white">
+      <div className="border-b border-slate-200 px-3 py-2">
+        <h4 className="text-[13px] font-semibold text-slate-700">{title}</h4>
+        {note && <p className="mt-0.5 text-[12px] text-slate-500">{note}</p>}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] border-collapse text-left">
+          <thead>
+            <tr className="text-[11px] tracking-wide text-slate-500 uppercase">
+              <th className="px-3 py-2 font-medium">Símbolo</th>
+              <th className="px-3 py-2 font-medium">Parámetro</th>
+              <th className="px-3 py-2 font-medium">Dónde</th>
+              <th className="px-3 py-2 font-medium">Unidad</th>
+              <th className="px-3 py-2 font-medium">Qué representa</th>
+              <th className="px-3 py-2 font-medium">Relación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.symbol + row.name} className="border-t border-slate-100 align-top">
+                <td className="px-3 py-2 font-mono text-[13px] font-semibold whitespace-nowrap text-indigo-700">
+                  {row.symbol}
+                </td>
+                <td className="px-3 py-2 text-[12.5px] font-medium text-slate-700">{row.name}</td>
+                <td className="px-3 py-2 text-[12px] whitespace-nowrap text-slate-500">
+                  {row.where}
+                </td>
+                <td className="px-3 py-2 text-[12px] text-slate-500">{row.unit}</td>
+                <td className="max-w-[340px] px-3 py-2 text-[12.5px] leading-snug text-slate-600">
+                  {row.meaning}
+                </td>
+                <td className="px-3 py-2 font-mono text-[12px] whitespace-nowrap text-slate-500">
+                  {row.relation ?? '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+const CALCULATOR_PARAMS: ParamDoc[] = [
+  {
+    symbol: 'B',
+    name: 'Velocidad de transmisión del enlace',
+    where: 'entrada',
+    unit: 'bits/s (bps)',
+    meaning:
+      'Ritmo al que el emisor inyecta bits en el medio, es decir la capacidad del enlace. No es la velocidad a la que viaja la señal: un enlace de 50 kbps tarda siempre 20 ms en poner en el cable una trama de 1000 bits, recorra esta un metro o 36 000 km.',
+    relation: 't_f = L / B',
+  },
+  {
+    symbol: 'L',
+    name: 'Longitud de la trama',
+    where: 'entrada',
+    unit: 'bits',
+    meaning:
+      'Bits que ocupa una trama completa, cabeceras y cola incluidas. Tramas largas aprovechan mejor el enlace, pero exponen más bits a los errores.',
+    relation: 'P ≈ L · BER',
+  },
+  {
+    symbol: 't_p',
+    name: 'Retardo de propagación de ida',
+    where: 'entrada',
+    unit: 'milisegundos',
+    meaning:
+      'Tiempo que tarda un bit en recorrer el medio desde el emisor hasta el receptor. Depende de la distancia y del medio físico, nunca del ancho de banda.',
+    relation: 't_p = d / v',
+  },
+  {
+    symbol: 'N',
+    name: 'Apertura de la ventana',
+    where: 'entrada',
+    unit: 'tramas',
+    meaning:
+      'Número de tramas que el emisor puede tener enviadas y sin confirmar a la vez. Con N = 1 el protocolo se reduce a parada y espera.',
+    relation: 'N ≤ 2^m − 1',
+  },
+  {
+    symbol: 'P',
+    name: 'Probabilidad de error por trama',
+    where: 'entrada',
+    unit: 'adimensional (0 a 1)',
+    meaning:
+      'Fracción de las tramas transmitidas que se pierde o llega dañada. Es POR TRAMA: no es una tasa por unidad de tiempo ni por bit. P = 0,10 significa que unas 10 de cada 100 tramas fallan, sea cual sea la velocidad del enlace o la duración de la transmisión.',
+    relation: 'P = 1 − (1 − BER)^L',
+  },
+  {
+    symbol: 't_f',
+    name: 'Tiempo de transmisión de la trama',
+    where: 'resultado',
+    unit: 'milisegundos',
+    meaning:
+      'Lo que tarda el emisor en poner la trama completa en el medio. Es distinto del retardo de propagación t_p, que es lo que tarda en llegar al otro extremo.',
+    relation: 't_f = L / B',
+  },
+  {
+    symbol: 'a',
+    name: 'Parámetro de retardo normalizado',
+    where: 'resultado',
+    unit: 'adimensional',
+    meaning:
+      'Cuántos tiempos de trama cabe el retardo de propagación. Con a « 1 el enlace es corto y rápido de llenar; con a » 1 (satélite) la tubería es larga y hace falta una ventana grande.',
+    relation: 'a = t_p / t_f',
+  },
+  {
+    symbol: 'BER',
+    name: 'Tasa de error de bit',
+    where: 'resultado',
+    unit: 'errores por bit',
+    meaning:
+      'Probabilidad de que un bit concreto llegue alterado. Se deduce de P y de L, y permite comprobar si la P elegida es realista para el medio (fibra ≈ 10⁻¹², radio ≈ 10⁻⁵).',
+    relation: 'BER = 1 − (1 − P)^(1/L)',
+  },
+  {
+    symbol: 'BD',
+    name: 'Producto ancho de banda × retardo',
+    where: 'resultado',
+    unit: 'bits',
+    meaning:
+      'Bits que caben simultáneamente «dentro» del cable en un viaje de ida y vuelta. Es la capacidad de almacenamiento del propio enlace y fija la apertura mínima útil de la ventana.',
+    relation: 'BD = B × RTT',
+  },
+  {
+    symbol: 'U',
+    name: 'Utilización del enlace',
+    where: 'resultado',
+    unit: 'porcentaje',
+    meaning:
+      'Fracción del tiempo que el enlace transporta datos útiles. Es el resultado que resume todo lo demás: cuanto más se acerca al 100 %, menos tiempo pasa el emisor esperando.',
+    relation: 'U = N(1−P)/[(1+2a)(1−P+N·P)]',
+  },
+]
+
+const SIMULATOR_PARAMS: ParamDoc[] = [
+  {
+    symbol: 'N',
+    name: 'Apertura de la ventana',
+    where: 'panel de control',
+    unit: 'tramas (1 a 8)',
+    meaning:
+      'Número máximo de tramas que el emisor puede tener enviadas y sin confirmar. Es la anchura del recuadro punteado del panel del emisor: cuando se llena, el botón de envío se deshabilita.',
+    relation: 'N ≤ 2^m − 1',
+  },
+  {
+    symbol: 'T_out',
+    name: 'Temporizador de retransmisión',
+    where: 'panel de control',
+    unit: 'segundos (1 a 12)',
+    meaning:
+      'Tiempo que el emisor espera el ACK de la trama base antes de darla por perdida y retransmitir TODAS las tramas no confirmadas. Si se fija por debajo del RTT se producen timeouts prematuros.',
+    relation: 'T_out > RTT',
+  },
+  {
+    symbol: 't_p',
+    name: 'Retardo de propagación',
+    where: 'panel de control',
+    unit: 'segundos (0,4 a 3,5)',
+    meaning:
+      'Tiempo que tarda una trama en cruzar el canal de un extremo al otro. Es exactamente lo que la animación tarda en llevar la trama de un lado a otro de la pantalla.',
+    relation: 't_p = d / v',
+  },
+  {
+    symbol: '×',
+    name: 'Velocidad de reproducción',
+    where: 'panel de control',
+    unit: 'factor (0,25 a 3)',
+    meaning:
+      'Ritmo al que se reproduce la animación. Es un control de vídeo: no modifica N, T_out ni t_p, ni altera en nada el comportamiento del protocolo.',
+  },
+  {
+    symbol: 'base',
+    name: 'Base de la ventana',
+    where: 'panel del emisor',
+    unit: 'nº de secuencia',
+    meaning:
+      'Primera trama enviada y todavía sin confirmar. Es la única que lleva temporizador y la que marca el extremo izquierdo de la ventana.',
+  },
+  {
+    symbol: 'nextSeqNum',
+    name: 'Siguiente número de secuencia',
+    where: 'panel del emisor',
+    unit: 'nº de secuencia',
+    meaning:
+      'Número que se asignará a la próxima trama nueva. Solo puede enviarse mientras quede por debajo de base + N.',
+    relation: 'nextSeqNum < base + N',
+  },
+  {
+    symbol: 'expectedSeqNum',
+    name: 'Número esperado por el receptor',
+    where: 'panel del receptor',
+    unit: 'nº de secuencia',
+    meaning:
+      'Única trama que el receptor aceptará. Cualquier otra se descarta y provoca el reenvío del último ACK válido. Su ventana tiene apertura 1.',
+  },
+  {
+    symbol: 'RTT',
+    name: 'Tiempo de ida y vuelta',
+    where: 'derivado',
+    unit: 'segundos',
+    meaning:
+      'Tiempo mínimo que transcurre entre enviar una trama y poder recibir su confirmación. Marca el suelo del temporizador de retransmisión.',
+    relation: 'RTT = 2·t_p',
+  },
+  {
+    symbol: 'η',
+    name: 'Eficiencia observada',
+    where: 'cabecera',
+    unit: 'porcentaje',
+    meaning:
+      'Tramas entregadas a la capa de red dividido entre el total de transmisiones realizadas, retransmisiones incluidas. Cae en cuanto aparecen pérdidas, porque el retroceso N reenvía la ventana entera.',
+    relation: 'η = entregadas / transmisiones',
+  },
+]
 
 function Calculator() {
   const [params, setParams] = useState<LinkParams>(TANENBAUM_EXAMPLE)
@@ -92,39 +324,54 @@ function Calculator() {
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-4">
         <Slider
-          label="Velocidad del enlace"
+          label="Velocidad de transmisión del enlace (B)"
           value={params.bitrate}
           min={10_000}
           max={10_000_000}
           step={10_000}
           onChange={(bitrate) => setParams((p) => ({ ...p, bitrate }))}
           format={(v) => (v >= 1_000_000 ? `${(v / 1_000_000).toFixed(2)} Mbps` : `${v / 1000} kbps`)}
+          hint={
+            <>
+              Bits por segundo que la interfaz puede inyectar en el medio: la{' '}
+              <strong>capacidad</strong> del enlace. No es la velocidad a la que viaja la señal;
+              determina cuánto tarda en salir una trama, <span className="font-mono">t_f = L / B</span>.
+            </>
+          }
         />
         <Slider
-          label="Tamaño de trama"
+          label="Longitud de la trama (L)"
           value={params.frameBits}
           min={200}
           max={12_000}
           step={100}
           onChange={(frameBits) => setParams((p) => ({ ...p, frameBits }))}
           format={(v) => `${v} bits (${(v / 8).toFixed(0)} B)`}
+          hint="Bits que ocupa una trama completa, cabeceras incluidas. Tramas largas aprovechan mejor el enlace, pero son más vulnerables a los errores."
         />
         <Slider
-          label="Retardo de propagación (ida)"
+          label="Retardo de propagación de ida (t_p)"
           value={params.oneWayDelayMs}
           min={1}
           max={400}
           onChange={(oneWayDelayMs) => setParams((p) => ({ ...p, oneWayDelayMs }))}
           format={(v) => `${v} ms`}
+          hint={
+            <>
+              Tiempo que tarda un bit en recorrer el medio:{' '}
+              <span className="font-mono">t_p = d / v</span>, con v ≈ 2·10⁸ m/s en cobre y fibra.
+              Depende de la distancia, no del ancho de banda.
+            </>
+          }
         />
         <Slider
-          label="Ventana N"
+          label="Apertura de la ventana (N)"
           value={windowSize}
           min={1}
           max={64}
           onChange={setWindowSize}
           format={(v) => `${v} tramas`}
-          hint={`Necesita m = ${bits} bits de secuencia (N ≤ 2^${bits} − 1 = ${maxWindowForBits(bits)}).`}
+          hint={`Tramas que el emisor puede tener enviadas sin confirmar. Necesita m = ${bits} bits de secuencia (N ≤ 2^${bits} − 1 = ${maxWindowForBits(bits)}).`}
         />
         <Slider
           label="Probabilidad de error por trama (P)"
@@ -133,7 +380,14 @@ function Calculator() {
           max={0.5}
           step={0.01}
           onChange={setErrorRate}
-          format={(v) => `${(v * 100).toFixed(0)} %`}
+          format={(v) => `${(v * 100).toFixed(0)} % de las tramas`}
+          hint={
+            <>
+              Es una probabilidad <strong>por trama</strong>, no por unidad de tiempo ni por bit:
+              P = 10 % significa que unas 10 de cada 100 tramas transmitidas se pierden o llegan
+              dañadas, sea cual sea la velocidad del enlace.
+            </>
+          }
         />
         <button
           type="button"
@@ -143,10 +397,10 @@ function Calculator() {
             setErrorRate(0)
           }}
           className={cx(
-            'w-full rounded-xl border px-3 py-2 text-[12px] transition-colors',
+            'w-full rounded-xl border px-3 py-2 text-[13px] transition-colors',
             isTanenbaumExample
-              ? 'border-indigo-400/40 bg-indigo-500/10 text-indigo-200'
-              : 'border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/10',
+              ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
           )}
         >
           Cargar el ejemplo del satélite de Tanenbaum (50 kbps, RTT 500 ms)
@@ -154,7 +408,7 @@ function Calculator() {
       </div>
 
       <div className="space-y-3">
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           <Row label="t_f · tiempo de trama" value={formatMs(metrics.frameTimeMs)} hint="= L / B" />
           <Row label="2·t_p · ida y vuelta" value={formatMs(2 * params.oneWayDelayMs)} />
           <Row label="t_f + 2·t_p · ciclo" value={formatMs(metrics.cycleMs)} />
@@ -164,9 +418,14 @@ function Calculator() {
             value={formatBits(metrics.bandwidthDelayBits)}
             hint="bits en vuelo"
           />
+          <Row
+            label="BER equivalente"
+            value={errorRate === 0 ? '0' : formatScientific(bitErrorRate(errorRate, params.frameBits))}
+            hint="errores por bit"
+          />
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
           <Row
             label="Eficiencia con parada y espera"
             value={formatPercent(metrics.stopAndWait)}
@@ -191,7 +450,7 @@ function Calculator() {
           />
         </div>
 
-        <p className="rounded-xl border border-indigo-400/20 bg-indigo-500/[0.07] p-3 text-[11.5px] leading-snug text-slate-300">
+        <p className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 text-[12.5px] leading-snug text-slate-600">
           {windowSize >= metrics.optimalWindow ? (
             <>
               Con N = {windowSize} ≥ {metrics.optimalWindow} la ventana <strong>llena la tubería</strong>:
@@ -207,6 +466,14 @@ function Calculator() {
           )}
         </p>
       </div>
+
+      <div className="lg:col-span-2">
+        <ParamTable
+          title="Descripción de los parámetros de la calculadora"
+          note="Todas las entradas describen el enlace físico y el protocolo; los resultados se derivan de ellas con las fórmulas de la pestaña anterior."
+          rows={CALCULATOR_PARAMS}
+        />
+      </div>
     </div>
   )
 }
@@ -219,17 +486,17 @@ export function TheoryPanel() {
       title="Teoría y fórmulas"
       subtitle="Fundamentos del protocolo y cálculo de rendimiento"
       aside={
-        <div className="flex gap-1 rounded-xl border border-white/10 bg-slate-950/50 p-1">
+        <div className="flex gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1">
           {TABS.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
               className={cx(
-                'rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors',
+                'rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors',
                 tab === item.id
-                  ? 'bg-indigo-500/25 text-indigo-100'
-                  : 'text-slate-400 hover:text-slate-200',
+                  ? 'bg-white text-indigo-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-800',
               )}
             >
               {item.label}
@@ -241,8 +508,8 @@ export function TheoryPanel() {
       {tab === 'protocolo' && (
         <div className="grid gap-4 lg:grid-cols-2">
           <div>
-            <h3 className="mb-2 text-[12px] font-semibold tracking-wide text-indigo-300 uppercase">
-              Emisor · ventana de tamaño N
+            <h3 className="mb-2 text-[13px] font-semibold tracking-wide text-indigo-700 uppercase">
+              Emisor · ventana de apertura N
             </h3>
             <Code>{`enviar(datos):
     si nextSeq < base + N:
@@ -266,8 +533,8 @@ al expirar el temporizador:
         retransmitir(trama[i])     // «retroceso N»`}</Code>
           </div>
           <div>
-            <h3 className="mb-2 text-[12px] font-semibold tracking-wide text-emerald-300 uppercase">
-              Receptor · ventana de tamaño 1
+            <h3 className="mb-2 text-[13px] font-semibold tracking-wide text-emerald-700 uppercase">
+              Receptor · ventana de apertura 1
             </h3>
             <Code>{`al recibir trama con nº de secuencia seq:
     si seq == expectedSeqNum:
@@ -277,24 +544,32 @@ al expirar el temporizador:
     si no:
         descartar(trama)                  // fuera de orden
         enviar(ACK expectedSeqNum - 1)    // último ACK válido`}</Code>
-            <ul className="mt-3 space-y-2 text-[12px] leading-snug text-slate-400">
+            <ul className="mt-3 space-y-2 text-[13px] leading-snug text-slate-600">
               <li>
-                <strong className="text-slate-200">Sin búfer de reordenación.</strong> El receptor no
+                <strong className="text-slate-800">Sin búfer de reordenación.</strong> El receptor no
                 guarda tramas fuera de orden; por eso una sola pérdida obliga a retransmitir toda la
                 ventana. Ese es el precio de su simplicidad frente a la repetición selectiva.
               </li>
               <li>
-                <strong className="text-slate-200">ACK acumulativo.</strong> ACK n confirma todas las
+                <strong className="text-slate-800">ACK acumulativo.</strong> ACK n confirma todas las
                 tramas hasta la n. Si se pierde ACK 1 pero llega ACK 2, la ventana se desliza igual y
                 la pérdida pasa inadvertida.
               </li>
               <li>
-                <strong className="text-slate-200">Un solo temporizador.</strong> Corresponde a la
+                <strong className="text-slate-800">Un solo temporizador.</strong> Corresponde a la
                 trama <em>base</em>: es la más antigua sin confirmar.
               </li>
             </ul>
           </div>
         </div>
+      )}
+
+      {tab === 'parametros' && (
+        <ParamTable
+          title="Descripción de los parámetros del simulador"
+          note="Los cuatro primeros se ajustan con los sliders del panel de control; el resto son los indicadores que el simulador muestra en pantalla."
+          rows={SIMULATOR_PARAMS}
+        />
       )}
 
       {tab === 'formulas' && (
@@ -320,7 +595,7 @@ al expirar el temporizador:
           <Formula
             title="Producto ancho de banda–retardo"
             expression="BD = B × RTT"
-            description="Bits que caben simultáneamente en el canal. Es la capacidad de almacenamiento del propio enlace y fija el tamaño mínimo útil de la ventana."
+            description="Bits que caben simultáneamente en el canal. Es la capacidad de almacenamiento del propio enlace y fija la apertura mínima útil de la ventana."
             source="Tanenbaum & Wetherall §3.4"
           />
           <Formula
@@ -340,8 +615,8 @@ al expirar el temporizador:
 
       {tab === 'calculadora' && <Calculator />}
 
-      <div className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-slate-500">
-        <strong className="text-slate-400">Bibliografía:</strong> Tanenbaum, A. S. y Wetherall, D. J.
+      <div className="mt-4 border-t border-slate-200 pt-3 text-[12px] leading-relaxed text-slate-600">
+        <strong className="text-slate-600">Bibliografía:</strong> Tanenbaum, A. S. y Wetherall, D. J.
         (2012). <em>Redes de Computadoras</em> (5.ª ed.), Pearson — §3.4 «Protocolos de ventana
         deslizante» y §3.4.2 «Protocolo de ventana deslizante con retroceso N». · Stallings, W.
         (2004). <em>Comunicaciones y Redes de Computadores</em> (7.ª ed.), Pearson — §7.4

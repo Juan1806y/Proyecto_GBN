@@ -18,7 +18,7 @@
 export interface LinkParams {
   /** Velocidad del enlace en bits por segundo. */
   bitrate: number
-  /** Tamaño de la trama en bits. */
+  /** Longitud de la trama en bits, cabeceras incluidas. */
   frameBits: number
   /** Retardo de propagación de ida, en milisegundos. */
   oneWayDelayMs: number
@@ -105,9 +105,54 @@ export function maxWindowForBits(m: number): number {
   return 2 ** m - 1
 }
 
-/** Bits mínimos del campo de secuencia para una ventana de tamaño N. */
+/** Bits mínimos del campo de secuencia para una ventana de apertura N. */
 export function bitsForWindow(n: number): number {
   return Math.ceil(Math.log2(n + 1))
+}
+
+/**
+ * Tasa de error de bit (BER) equivalente a una probabilidad de error P **por
+ * trama** sobre tramas de L bits.
+ *
+ * P es una probabilidad POR TRAMA, no por unidad de tiempo: mide qué fracción
+ * de las tramas transmitidas se pierde o llega dañada. Si los errores de bit
+ * son independientes, una trama sobrevive solo si sobreviven sus L bits:
+ *
+ *     P = 1 − (1 − BER)^L     ⟹     BER = 1 − (1 − P)^(1/L)
+ *
+ * y para BER pequeña, P ≈ L · BER.
+ */
+export function bitErrorRate(p: number, frameBits: number): number {
+  if (p <= 0 || frameBits <= 0) return 0
+  if (p >= 1) return 1
+  return 1 - (1 - p) ** (1 / frameBits)
+}
+
+const SUPERSCRIPT: Record<string, string> = {
+  '0': '⁰',
+  '1': '¹',
+  '2': '²',
+  '3': '³',
+  '4': '⁴',
+  '5': '⁵',
+  '6': '⁶',
+  '7': '⁷',
+  '8': '⁸',
+  '9': '⁹',
+  '-': '⁻',
+}
+
+/** Formatea un número muy pequeño en notación científica: 1,05 × 10⁻⁴. */
+export function formatScientific(value: number, digits = 2): string {
+  if (value <= 0) return '0'
+  if (value >= 0.01) return value.toFixed(digits + 1)
+  const [mantissa, exponent] = value.toExponential(digits).split('e')
+  const sup = exponent
+    .replace('+', '')
+    .split('')
+    .map((c) => SUPERSCRIPT[c] ?? c)
+    .join('')
+  return `${mantissa.replace('.', ',')} × 10${sup}`
 }
 
 export const formatPercent = (v: number, digits = 1) => `${(v * 100).toFixed(digits)} %`

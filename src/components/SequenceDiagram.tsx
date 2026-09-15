@@ -31,6 +31,7 @@ export function SequenceDiagram({ state }: { state: SimState }) {
 
   return (
     <Panel
+      accent="violet"
       title="Diagrama espacio-tiempo"
       subtitle={`Ventana visible: últimos ${(viewMs / 1000).toFixed(0)} s de simulación`}
       aside={
@@ -58,18 +59,18 @@ export function SequenceDiagram({ state }: { state: SimState }) {
                 x2="100%"
                 y1={y(t)}
                 y2={y(t)}
-                stroke="rgba(148,163,184,0.10)"
+                stroke="rgba(100,116,139,0.16)"
                 strokeDasharray="3 5"
               />
-              <text x="2" y={y(t) - 3} fill="rgba(148,163,184,0.5)" fontSize="9" fontFamily="monospace">
+              <text x="2" y={y(t) - 3} fill="rgba(100,116,139,0.75)" fontSize="9" fontFamily="monospace">
                 {(t / 1000).toFixed(0)}s
               </text>
             </g>
           ))}
 
           {/* Ejes verticales de emisor y receptor. */}
-          <line x1={`${SENDER_X}%`} x2={`${SENDER_X}%`} y1="0" y2={HEIGHT} stroke="rgba(129,140,248,0.5)" strokeWidth="2" />
-          <line x1={`${RECEIVER_X}%`} x2={`${RECEIVER_X}%`} y1="0" y2={HEIGHT} stroke="rgba(52,211,153,0.5)" strokeWidth="2" />
+          <line x1={`${SENDER_X}%`} x2={`${SENDER_X}%`} y1="0" y2={HEIGHT} stroke="rgba(99,102,241,0.6)" strokeWidth="2" />
+          <line x1={`${RECEIVER_X}%`} x2={`${RECEIVER_X}%`} y1="0" y2={HEIGHT} stroke="rgba(16,185,129,0.6)" strokeWidth="2" />
 
           {marks.map((mark) => (
             <g key={mark.id}>
@@ -78,14 +79,14 @@ export function SequenceDiagram({ state }: { state: SimState }) {
                 x2={`${SENDER_X + 8}%`}
                 y1={y(mark.time)}
                 y2={y(mark.time)}
-                stroke="#fb7185"
+                stroke="#f43f5e"
                 strokeWidth="2"
                 strokeDasharray="4 3"
               />
               <text
                 x={`${SENDER_X - 8}%`}
                 y={y(mark.time) - 4}
-                fill="#fb7185"
+                fill="#f43f5e"
                 fontSize="9"
                 fontFamily="monospace"
               >
@@ -106,12 +107,12 @@ export function SequenceDiagram({ state }: { state: SimState }) {
             const tDrawn = Math.min(record.t1, state.time)
             const x1 = x0 + direction * SPAN * reach
             const color = record.lost
-              ? '#fb7185'
+              ? '#f43f5e'
               : record.isRetransmission
-                ? '#fbbf24'
+                ? '#f59e0b'
                 : isData
-                  ? '#38bdf8'
-                  : '#34d399'
+                  ? '#0ea5e9'
+                  : '#10b981'
             return (
               <g key={record.frameId}>
                 <line
@@ -140,7 +141,7 @@ export function SequenceDiagram({ state }: { state: SimState }) {
                   <text
                     x={`${x1}%`}
                     y={y(record.t1) + 4}
-                    fill="#fb7185"
+                    fill="#f43f5e"
                     fontSize="12"
                     fontWeight="bold"
                     textAnchor="middle"
@@ -153,14 +154,14 @@ export function SequenceDiagram({ state }: { state: SimState }) {
           })}
         </g>
 
-        <text x={`${SENDER_X}%`} y="10" fill="rgba(129,140,248,0.9)" fontSize="10" textAnchor="middle">
+        <text x={`${SENDER_X}%`} y="10" fill="#4f46e5" fontSize="10" textAnchor="middle">
           EMISOR
         </text>
-        <text x={`${RECEIVER_X}%`} y="10" fill="rgba(52,211,153,0.9)" fontSize="10" textAnchor="middle">
+        <text x={`${RECEIVER_X}%`} y="10" fill="#059669" fontSize="10" textAnchor="middle">
           RECEPTOR
         </text>
       </svg>
-      <p className="mt-1 px-1 text-[11px] text-slate-500">
+      <p className="mt-1 px-1 text-[12px] text-slate-600">
         El tiempo avanza hacia abajo. La pendiente de cada línea es el retardo de propagación: a
         mayor pendiente, canal más lento.
       </p>

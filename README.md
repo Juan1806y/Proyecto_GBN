@@ -6,6 +6,9 @@ pensado para docencia de redes de computadoras: muestra en todo momento el estad
 
 React 19 · TypeScript · Vite · Tailwind CSS 4 · Framer Motion
 
+> 📘 **[Manual de usuario](docs/MANUAL-DE-USUARIO.md)** — guía completa con capturas,
+> descripción de todos los parámetros, procedimientos paso a paso y prácticas guiadas.
+
 ## Puesta en marcha
 
 ```bash
@@ -19,6 +22,95 @@ npm run dev
 | `npm run build` | comprobación de tipos + compilación de producción |
 | `npm run verify` | banco de pruebas de la máquina de estados (sin navegador) |
 | `npm run lint` | oxlint |
+
+## Funcionalidades de la interfaz
+
+La pantalla se lee de arriba hacia abajo: encabezado con el resumen del estado global,
+controles a la izquierda, y a la derecha el recorrido físico de una trama —emisor, canal,
+receptor— seguido de dos vistas de análisis y la teoría de referencia.
+
+### Encabezado
+
+Resumen en vivo de toda la corrida: reloj de simulación, tramas entregadas (`X/16`),
+eficiencia (% de transmisiones que fueron datos nuevos, no retransmisiones), timeouts
+ocurridos y pérdidas acumuladas (datos + ACK). Además muestra una etiqueta ⏸ *en pausa* o
+✓ *transferencia completa* según corresponda.
+
+### Panel de control
+
+- **Enviar nuevo paquete** (`Espacio`): entrega manualmente la siguiente trama pendiente al
+  emisor. Se deshabilita solo cuando la ventana está llena o no quedan paquetes.
+- **Pausar / Reanudar** (`P`) y **Reiniciar** (`R`): control de la ejecución.
+- **Avanzar al próximo evento** (`S` o `→`): modo paso a paso — salta el reloj directamente
+  hasta el siguiente suceso discreto (una llegada, una pérdida, un timeout) sin animación de
+  por medio, y anuncia de antemano cuál será y cuánto falta.
+- **Envío automático**: el emisor mantiene la ventana siempre llena por sí solo, sin pulsar
+  «Enviar» cada vez.
+- **Parámetros**: sliders de apertura de la ventana `N` (1–8, con el mínimo de bits de
+  secuencia que exige), temporizador de retransmisión `T_out`, retardo de propagación del
+  canal `t_p` y velocidad de reproducción (no altera la lógica, solo el reloj visual). Cada
+  slider describe bajo su nombre qué representa y con qué fórmula se relaciona.
+- **Provocar fallos**: tres botones para inyectar manualmente pérdida de una trama de datos,
+  pérdida de un ACK, o un retraso (`×2,6` el tránsito). Actúan sobre la trama seleccionada
+  en el canal o, si no hay ninguna, sobre la última en salir; si no hay ninguna trama de ese
+  tipo en vuelo, el fallo queda «armado» y se aplica a la siguiente que salga.
+
+### 1 · Emisor
+
+Búfer de paquetes 0–15 con la ventana deslizante dibujada como un rectángulo que se mueve al
+recibir ACK. Cada celda indica su estado con color: confirmada, enviada sin confirmar,
+utilizable dentro de la ventana, o bloqueada (fuera de la ventana todavía). Los punteros
+`base` y `nextSeq` se ven como marcadores independientes. El anillo de temporizador muestra
+cuánto falta para que expire el de la trama `base` (el único que existe) y cambia de color al
+acercarse al límite.
+
+### 2 · Canal de comunicación
+
+Las tramas de datos viajan de izquierda a derecha; los ACK, de derecha a izquierda. Al hacer
+clic sobre cualquier trama en vuelo se abre su ficha de inspección: porcentaje recorrido,
+tiempo que le falta, instante de salida y de llegada, y una **previsión** de lo que ocurrirá
+al llegar (si el receptor la aceptará o la descartará, y con qué ACK responderá). Con la
+simulación en pausa, el canal se vuelve un tablero manipulable: aparece un menú `✂ perder` /
+`🐢 retrasar` sobre la propia trama y el efecto se aplica al instante, en el punto exacto del
+canal donde se la ve, sin esperar a reanudar.
+
+### 3 · Receptor
+
+Su ventana de recepción tiene **siempre apertura 1**: solo `expectedSeqNum` es aceptable.
+Muestra tramas entregadas a la capa de red, el último ACK enviado, cuántas tramas se
+descartaron por llegar fuera de orden, y cuántos ACK se enviaron en total (y cuántos se
+perdieron en el canal).
+
+### Diagrama espacio-tiempo
+
+Vista estilo Tanenbaum: el tiempo avanza hacia abajo y cada trama es una línea diagonal entre
+el eje del emisor y el del receptor. Las líneas cortadas a mitad de camino marcan pérdidas;
+las marcas rojas horizontales, los timeouts. Útil para ver de un vistazo el ritmo de
+retransmisiones de toda la corrida, no solo el instante actual.
+
+### Bitácora de eventos
+
+Registro cronológico (más reciente primero) de cada transición de la máquina de estados:
+transmisiones, retransmisiones, ACK enviados y recibidos, descartes, pérdidas y timeouts,
+cada uno con su marca de tiempo y una explicación de por qué ocurrió.
+
+### Teoría y fórmulas
+
+Cuatro pestañas independientes de la animación:
+
+- **Máquina de estados**: el pseudocódigo exacto que implementa `engine.ts`, para emisor y
+  receptor.
+- **Parámetros**: tabla de referencia con el símbolo, la unidad, el significado y la
+  relación de cada control e indicador del simulador.
+- **Fórmulas**: las expresiones de rendimiento (tiempo de trama, eficiencia, ventana óptima,
+  producto ancho de banda×retardo, restricción de bits de secuencia, utilización con
+  errores) con su fuente bibliográfica.
+- **Calculadora**: velocidad de transmisión del enlace `B`, longitud de trama `L`, retardo de
+  propagación `t_p`, apertura de ventana `N` y probabilidad de error **por trama** `P`, con el
+  ejemplo del satélite de Tanenbaum precargado. Calcula al vuelo `t_f`, `a`, el producto
+  ancho de banda–retardo, la BER equivalente y la eficiencia de parada y espera frente a
+  Go-Back-N. Incluye una tabla que describe cada parámetro. Es una herramienta de cálculo
+  aparte, no está ligada a los parámetros de la simulación de arriba.
 
 ## Arquitectura
 
@@ -36,7 +128,7 @@ src/
 ├── components/          ← capa visual
 │   ├── SenderPanel.tsx      búfer 0..15, ventana deslizante, punteros base/nextSeq
 │   ├── NetworkChannel.tsx   carriles de datos (→) y de ACK (←)
-│   ├── ReceiverPanel.tsx    expectedSeqNum y ventana de recepción de tamaño 1
+│   ├── ReceiverPanel.tsx    expectedSeqNum y ventana de recepción de apertura 1
 │   ├── ControlPanel.tsx     envío, parámetros y fallos provocados
 │   ├── SequenceDiagram.tsx  diagrama espacio-tiempo
 │   ├── EventLog.tsx         bitácora de transiciones
@@ -63,7 +155,7 @@ el efecto de destrucción al perderse y el deslizamiento de la ventana.
 
 ## Protocolo implementado
 
-**Emisor** (ventana de tamaño N)
+**Emisor** (ventana de apertura N)
 
 - `enviar`: transmite si `nextSeq < base + N`; si no, rechaza (el botón se deshabilita).
 - Un **único temporizador**, el de la trama `base` (la más antigua sin confirmar).
@@ -71,7 +163,7 @@ el efecto de destrucción al perderse y el deslizamiento de la ventana.
   ventana se desliza igualmente. Los ACK obsoletos se ignoran.
 - `timeout`: reinicia el temporizador y **retransmite todas** las tramas `base..nextSeq−1`.
 
-**Receptor** (ventana de tamaño 1)
+**Receptor** (ventana de apertura 1)
 
 - Acepta únicamente `expectedSeqNum`; la entrega a la capa de red y envía `ACK(seq)`.
 - Cualquier otra trama se **descarta** (no hay búfer de reordenación) y se reenvía el

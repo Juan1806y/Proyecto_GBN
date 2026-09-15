@@ -75,12 +75,12 @@ function FrameSprite({
   const left = isData ? progress : 1 - progress
 
   const palette = lost
-    ? 'border-rose-400 bg-rose-500/25 text-rose-100'
+    ? 'border-rose-400 bg-rose-100 text-rose-700'
     : frame.isRetransmission
-      ? 'border-amber-300 bg-amber-400/20 text-amber-100'
+      ? 'border-amber-400 bg-amber-100 text-amber-700'
       : isData
-        ? 'border-sky-400 bg-sky-500/20 text-sky-100'
-        : 'border-emerald-400 bg-emerald-500/20 text-emerald-100'
+        ? 'border-sky-400 bg-sky-100 text-sky-700'
+        : 'border-emerald-400 bg-emerald-100 text-emerald-700'
 
   return (
     <motion.div
@@ -114,23 +114,23 @@ function FrameSprite({
           'flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 shadow-lg shadow-black/40 transition-shadow',
           palette,
           selected
-            ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-950'
-            : 'hover:ring-2 hover:ring-white/50 hover:ring-offset-2 hover:ring-offset-slate-950',
+            ? 'ring-2 ring-slate-900 ring-offset-2 ring-offset-white'
+            : 'hover:ring-2 hover:ring-slate-400/60 hover:ring-offset-2 hover:ring-offset-white',
         )}
       >
-        <span className="text-[9px] leading-none font-bold tracking-wider opacity-80">
+        <span className="text-[10px] leading-none font-bold tracking-wider opacity-80">
           {isData ? 'DATA' : 'ACK'}
         </span>
         <span className="font-mono text-lg leading-none font-bold">{frame.seq}</span>
       </button>
 
       {lost && (
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-2xl font-black text-rose-300">
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-2xl font-black text-rose-600">
           ✕
         </span>
       )}
       {!lost && (frame.isRetransmission || frame.delayed) && (
-        <span className="pointer-events-none absolute -top-2 -right-2 rounded-full border border-amber-300/70 bg-slate-900 px-1 text-[10px] leading-tight text-amber-200">
+        <span className="pointer-events-none absolute -top-2 -right-2 rounded-full border border-amber-400 bg-slate-800 px-1 text-[11px] leading-tight text-amber-200">
           {frame.isRetransmission ? '↻' : '🐢'}
         </span>
       )}
@@ -170,7 +170,7 @@ function FrameToolbar({
     <motion.div
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute z-20 flex justify-center gap-1 rounded-lg border border-white/15 bg-slate-950/95 p-1 shadow-xl shadow-black/50"
+      className="absolute z-20 flex justify-center gap-1 rounded-lg border border-slate-700 bg-slate-800/95 p-1 shadow-xl shadow-slate-900/30"
       style={{
         width: TOOLBAR_W,
         left: `clamp(0px, calc(${left * 100}% - ${TOOLBAR_W / 2}px), calc(100% - ${TOOLBAR_W}px))`,
@@ -181,7 +181,7 @@ function FrameToolbar({
         type="button"
         onClick={onLose}
         title={`Perder ${frame.kind} ${frame.seq}${paused ? ' ahora mismo' : ''}`}
-        className="rounded px-1.5 py-0.5 text-[11px] whitespace-nowrap text-rose-300 hover:bg-rose-500/20"
+        className="rounded px-1.5 py-0.5 text-[12px] whitespace-nowrap text-rose-300 hover:bg-rose-500/25"
       >
         ✂ perder
       </button>
@@ -189,7 +189,7 @@ function FrameToolbar({
         type="button"
         onClick={onDelay}
         title={`Retrasar ${frame.kind} ${frame.seq}`}
-        className="rounded px-1.5 py-0.5 text-[11px] whitespace-nowrap text-amber-300 hover:bg-amber-500/20"
+        className="rounded px-1.5 py-0.5 text-[12px] whitespace-nowrap text-amber-300 hover:bg-amber-500/25"
       >
         🐢 retrasar
       </button>
@@ -201,15 +201,15 @@ function Endpoint({ side, label, detail }: { side: 'left' | 'right'; label: stri
   return (
     <div
       className={cx(
-        'absolute inset-y-3 flex w-[86px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-slate-900/80 text-center',
+        'absolute inset-y-3 flex w-[86px] flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 bg-slate-50 text-center',
         side === 'left' ? 'left-2' : 'right-2',
       )}
     >
       <span className="text-lg">{side === 'left' ? '📤' : '📥'}</span>
-      <span className="text-[11px] font-semibold tracking-[0.1em] text-slate-200 uppercase">
+      <span className="text-[12px] font-semibold tracking-[0.1em] text-slate-700 uppercase">
         {label}
       </span>
-      <span className="px-1 font-mono text-[10px] text-slate-400">{detail}</span>
+      <span className="px-1 font-mono text-[11px] text-slate-600">{detail}</span>
     </div>
   )
 }
@@ -239,20 +239,20 @@ function FrameInspector({
           : 'en tránsito'
 
   return (
-    <div className="mt-2 rounded-xl border border-indigo-400/30 bg-indigo-500/[0.07] p-3">
+    <div className="mt-2 rounded-xl border border-indigo-200 bg-indigo-50/60 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <Tag tone={isData ? 'sky' : 'emerald'}>
             {frame.kind} {frame.seq}
           </Tag>
-          <span className="text-[12px] text-slate-300">{situation}</span>
+          <span className="text-[13px] text-slate-600">{situation}</span>
           {frame.isRetransmission && <Tag tone="amber">retransmisión</Tag>}
           {frame.delayed && <Tag tone="amber">retrasada</Tag>}
         </div>
         <button
           type="button"
           onClick={() => actions.select(null)}
-          className="text-[11px] text-slate-400 underline underline-offset-2 hover:text-slate-200"
+          className="text-[12px] text-slate-600 underline underline-offset-2 hover:text-slate-700"
         >
           quitar selección
         </button>
@@ -260,29 +260,29 @@ function FrameInspector({
 
       <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4">
         <div>
-          <div className="text-[10px] tracking-wide text-slate-500 uppercase">Recorrido</div>
-          <div className="font-mono text-[13px] text-slate-100">{Math.round(progress * 100)} %</div>
+          <div className="text-[11px] tracking-wide text-slate-600 uppercase">Recorrido</div>
+          <div className="font-mono text-[14px] text-slate-800">{Math.round(progress * 100)} %</div>
         </div>
         <div>
-          <div className="text-[10px] tracking-wide text-slate-500 uppercase">Le falta</div>
-          <div className="font-mono text-[13px] text-slate-100">
+          <div className="text-[11px] tracking-wide text-slate-600 uppercase">Le falta</div>
+          <div className="font-mono text-[14px] text-slate-800">
             {frame.status === 'IN_FLIGHT' ? `${(remaining / 1000).toFixed(2)} s` : '—'}
           </div>
         </div>
         <div>
-          <div className="text-[10px] tracking-wide text-slate-500 uppercase">Salió a los</div>
-          <div className="font-mono text-[13px] text-slate-100">
+          <div className="text-[11px] tracking-wide text-slate-600 uppercase">Salió a los</div>
+          <div className="font-mono text-[14px] text-slate-800">
             {(Math.max(0, frame.departure) / 1000).toFixed(2)} s
           </div>
         </div>
         <div>
-          <div className="text-[10px] tracking-wide text-slate-500 uppercase">
+          <div className="text-[11px] tracking-wide text-slate-600 uppercase">
             {frame.deathTime === null ? 'Llega a los' : 'Se destruye a los'}
           </div>
           <div
             className={cx(
-              'font-mono text-[13px]',
-              frame.deathTime === null ? 'text-slate-100' : 'text-rose-300',
+              'font-mono text-[14px]',
+              frame.deathTime === null ? 'text-slate-800' : 'text-rose-600',
             )}
           >
             {((frame.deathTime ?? frame.arrival) / 1000).toFixed(2)} s
@@ -290,8 +290,8 @@ function FrameInspector({
         </div>
       </div>
 
-      <p className="mt-2 border-t border-white/10 pt-2 text-[11.5px] leading-snug text-slate-300">
-        <span className="font-semibold text-indigo-300">Previsión: </span>
+      <p className="mt-2 border-t border-slate-200 pt-2 text-[12.5px] leading-snug text-slate-600">
+        <span className="font-semibold text-indigo-600">Previsión: </span>
         {predictOutcome(state, frame)}
       </p>
 
@@ -300,19 +300,19 @@ function FrameInspector({
           <button
             type="button"
             onClick={isData ? actions.losePacket : actions.loseAck}
-            className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-2.5 py-1 text-[12px] text-rose-200 hover:bg-rose-500/25"
+            className="rounded-lg border border-rose-300 bg-rose-50 px-2.5 py-1 text-[13px] text-rose-700 hover:bg-rose-100"
           >
             ✂ Perder esta trama
           </button>
           <button
             type="button"
             onClick={actions.delayFrame}
-            className="rounded-lg border border-amber-400/40 bg-amber-500/10 px-2.5 py-1 text-[12px] text-amber-200 hover:bg-amber-500/25"
+            className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-[13px] text-amber-700 hover:bg-amber-100"
           >
             🐢 Retrasarla
           </button>
           {!state.running && (
-            <span className="self-center text-[11px] text-slate-500">
+            <span className="self-center text-[12px] text-slate-600">
               en pausa el efecto se aplica al instante
             </span>
           )}
@@ -338,6 +338,7 @@ export function NetworkChannel({
 
   return (
     <Panel
+      accent="sky"
       title="2 · Canal de comunicación"
       subtitle={`Retardo de propagación de ida: ${(state.config.propagationDelay / 1000).toFixed(2)} s · RTT ≈ ${((state.config.propagationDelay * 2) / 1000).toFixed(2)} s`}
       aside={
@@ -352,8 +353,8 @@ export function NetworkChannel({
     >
       <div
         className={cx(
-          'relative h-[280px] overflow-hidden rounded-xl border bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.07),transparent_70%)] transition-colors',
-          state.running ? 'border-white/10' : 'border-amber-400/30',
+          'relative h-[280px] overflow-hidden rounded-xl border bg-[radial-gradient(circle_at_50%_50%,rgba(14,165,233,0.06),transparent_70%)] transition-colors',
+          state.running ? 'border-slate-200' : 'border-amber-300',
         )}
       >
         <Endpoint
@@ -364,7 +365,7 @@ export function NetworkChannel({
         <Endpoint side="right" label="Receptor" detail={`espera ${state.receiver.expected}`} />
 
         {!state.running && (
-          <div className="pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 rounded-full border border-amber-400/40 bg-slate-950/90 px-3 py-1 text-[10px] font-semibold tracking-wide text-amber-200 uppercase">
+          <div className="pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 rounded-full border border-amber-400/60 bg-slate-800/90 px-3 py-1 text-[11px] font-semibold tracking-wide text-amber-200 uppercase">
             ⏸ Pausa · las tramas se pueden seleccionar y modificar aquí mismo
           </div>
         )}
@@ -373,31 +374,31 @@ export function NetworkChannel({
         <div className="absolute inset-y-0 right-[96px] left-[96px]">
           {/* Carril de datos (→) */}
           <div
-            className="absolute right-0 left-0 h-px bg-gradient-to-r from-sky-500/10 via-sky-400/40 to-sky-400/70"
+            className="absolute right-0 left-0 h-px bg-gradient-to-r from-sky-400/10 via-sky-500/50 to-sky-500/80"
             style={{ top: `${DATA_LANE}%` }}
           />
           <div
-            className="absolute right-0 -translate-y-1/2 text-sky-400/70"
+            className="absolute right-0 -translate-y-1/2 text-sky-500/80"
             style={{ top: `${DATA_LANE}%` }}
           >
             ▶
           </div>
-          <span className="absolute top-2 left-0 text-[10px] font-semibold tracking-[0.16em] text-sky-400/70 uppercase">
+          <span className="absolute top-2 left-0 text-[11px] font-semibold tracking-[0.16em] text-sky-600/80 uppercase">
             Tramas de datos →
           </span>
 
           {/* Carril de confirmaciones (←) */}
           <div
-            className="absolute right-0 left-0 h-px bg-gradient-to-l from-emerald-500/10 via-emerald-400/40 to-emerald-400/70"
+            className="absolute right-0 left-0 h-px bg-gradient-to-l from-emerald-400/10 via-emerald-500/50 to-emerald-500/80"
             style={{ top: `${ACK_LANE}%` }}
           />
           <div
-            className="absolute left-0 -translate-y-1/2 text-emerald-400/70"
+            className="absolute left-0 -translate-y-1/2 text-emerald-500/80"
             style={{ top: `${ACK_LANE}%` }}
           >
             ◀
           </div>
-          <span className="absolute right-0 bottom-2 text-[10px] font-semibold tracking-[0.16em] text-emerald-400/70 uppercase">
+          <span className="absolute right-0 bottom-2 text-[11px] font-semibold tracking-[0.16em] text-emerald-600/80 uppercase">
             ← Confirmaciones (ACK acumulativo)
           </span>
 
@@ -428,7 +429,7 @@ export function NetworkChannel({
           )}
 
           {state.frames.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center text-center text-xs text-slate-600">
+            <div className="absolute inset-0 flex items-center justify-center text-center text-sm text-slate-500">
               El canal está vacío.
               <br />
               Pulsa «Enviar nuevo paquete» para transmitir la trama {state.sender.nextSeq}.
@@ -440,7 +441,7 @@ export function NetworkChannel({
       {selected ? (
         <FrameInspector state={state} frame={selected} actions={actions} />
       ) : (
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-[12px] text-slate-600">
           Haz clic en cualquier trama del canal para inspeccionarla y actuar sobre ella.
           {!state.running && ' Con la simulación en pausa los fallos se aplican en el acto.'}
         </p>

@@ -79,7 +79,7 @@ export function createState(config: Partial<SimConfig> = {}): SimState {
         time: 0,
         source: 'system',
         title: 'Simulación lista',
-        detail: `Ventana N = ${merged.windowSize}. Pulsa «Enviar nuevo paquete» para transmitir la trama 0.`,
+        detail: `Apertura de la ventana N = ${merged.windowSize}. Pulsa «Enviar nuevo paquete» para transmitir la trama 0.`,
       },
     ],
     trace: [],
@@ -320,7 +320,7 @@ function receiveData(state: SimState, frame: Frame): void {
     state,
     'receiver',
     `Descarta la trama ${frame.seq} (fuera de orden)`,
-    `Su ventana de recepción es de tamaño 1 y esperaba ${expected}. Reenvía el último ACK válido: ACK ${lastValid}.`,
+    `Su ventana de recepción tiene apertura 1 y esperaba ${expected}. Reenvía el último ACK válido: ACK ${lastValid}.`,
   )
   enqueue(state, 'ACK', lastValid, state.time)
 }
@@ -789,8 +789,8 @@ export function setConfig(prev: SimState, patch: Partial<SimConfig>): SimState {
     log(
       state,
       'system',
-      `Tamaño de ventana N = ${patch.windowSize}`,
-      `Ventana de envío ${windowLabel(state)}. El receptor mantiene siempre una ventana de tamaño 1.`,
+      `Apertura de la ventana N = ${patch.windowSize}`,
+      `Ventana de envío ${windowLabel(state)}. El receptor mantiene siempre una ventana de apertura 1.`,
     )
   }
   return state
