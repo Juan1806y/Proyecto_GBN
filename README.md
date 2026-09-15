@@ -6,8 +6,10 @@ pensado para docencia de redes de computadoras: muestra en todo momento el estad
 
 React 19 · TypeScript · Vite · Tailwind CSS 4 · Framer Motion
 
-> 📘 **[Manual de usuario](docs/MANUAL-DE-USUARIO.md)** — guía completa con capturas,
-> descripción de todos los parámetros, procedimientos paso a paso y prácticas guiadas.
+> 📘 **Manual de usuario** — guía completa con capturas, descripción de todos los parámetros,
+> procedimientos paso a paso y prácticas guiadas:
+> [leer en línea](docs/MANUAL-DE-USUARIO.md) ·
+> [descargar en PDF](docs/Manual-de-usuario-Simulador-Go-Back-N.pdf) (39 páginas)
 
 ## Puesta en marcha
 
