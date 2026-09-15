@@ -31,7 +31,9 @@ jobs:
           cache: npm
 
       - name: Instalar dependencias
-        run: npm ci
+        # El archivo de bloqueo se generó en Windows; si npm ci tropieza con
+        # alguna dependencia opcional específica de plataforma, se reinstala.
+        run: npm ci || npm install
 
       - name: Verificar la máquina de estados del protocolo
         run: npm run verify
